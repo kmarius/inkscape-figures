@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 import os
 import subprocess
 from pathlib import Path
@@ -18,11 +19,13 @@ def inkscape(path):
     subprocess.Popen(['inkscape', str(path)])
 
 
-def create_latex(name, title, indent=0):
+def create_latex(name, title, figures="", indent=0):
+    name = re.sub(".*/", "", name)
+    title = re.sub(".*/", "", title)
     lines = [
         r"\begin{figure}[ht]",
         r"    \centering",
-        rf"    \incfig{{{name}}}",
+        rf"    \incfig{{{figures}{name}}}",
         rf"    \caption{{{title.strip()}}}",
         rf"    \label{{fig:{name}}}",
         r"\end{figure}"]
@@ -137,7 +140,8 @@ def watch_daemon():
     default=os.getcwd(),
     type=click.Path(exists=True, file_okay=False, dir_okay=True)
 )
-def create(title, root):
+@click.argument('figure_dir', default="")
+def create(title, root, figure_dir=""):
     """
     Creates a figure.
 
@@ -164,7 +168,7 @@ def create(title, root):
     # Print the code for including the figure to stdout.
     # Copy the indentation of the input.
     leading_spaces = len(title) - len(title.lstrip())
-    print(create_latex(figure_path.stem, title, indent=leading_spaces))
+    print(create_latex(figure_path.stem, title, figures=figure_dir, indent=leading_spaces))
 
 
 def beautify(name):
